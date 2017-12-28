@@ -4,7 +4,7 @@
   "private": true,
   "description": "New Swagger API Project",
   "keywords": [],
-  "author": "cat",
+  "author": "",
   "license": "",
   "main": "app.js",
   "dependencies": {
