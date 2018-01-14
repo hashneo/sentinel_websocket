@@ -24,31 +24,21 @@ function websocket(config) {
         process.exit(1);
     });
 
-    let wsClients = [];
+    let wsClients = {};
 
     global.app.ws('/api/ws', function (ws, req) {
 
-        ws['id'] = uuid.v4();
-        wsClients.push(ws);
+        ws['id'] = ws.upgradeReq.cookies['connect.sid'] || uuid.v4();
+        wsClients[ws.id] = ws;
 
-        console.log('websocket opened, active connections => ' + wsClients.length);
+        console.log('websocket opened, active connections => ' + Object.keys(wsClients).length);
 
         ws.on('message', function (msg) {
             //console.log(msg);
         });
         ws.on('close', function () {
-            let removeIndex = -1;
-            for (let i in wsClients) {
-                if (this.id === wsClients[i].id) {
-                    removeIndex = i;
-                    break;
-                }
-            }
-
-            if (removeIndex != -1)
-                wsClients.splice(removeIndex, 1);
-
-            console.log('websocket closed, active connections => ' + wsClients.length);
+            delete wsClients[this.id];
+            console.log('websocket closed, active connections => ' + Object.keys(wsClients).length);
         });
     });
 
@@ -64,14 +54,18 @@ function websocket(config) {
 
             case 'sentinel.device.insert':
                 break;
+            case 'sentinel.automation.log':
 
+                if (wsClients[data.target])
+                    wsClients[data.target].send( JSON.stringify( {log: data.log} ) );
+
+                break;
             case 'sentinel.device.update':
 
-                // Ignore from server
+                // Accept only from server
                 if ( data.module === 'server'){
-
                     for (let i in wsClients) {
-                        wsClients[i].send( JSON.stringify( {'device': data.id, 'status': data.value} ) );
+                        wsClients[i].send( JSON.stringify( {device: data.id, status: data.value} ) );
                     }
                 }
 
