@@ -18,7 +18,7 @@
     "jwt-verifier-client": "^1.0.4",
     "mongodb": "^2.2.11",
     "mysql": "^2.11.1",
-    "newrelic": "^1.28.1",
+    "newrelic": "^4.9.0",
     "node-cache": "^4.1.0",
     "nodemailer": "^4.3.1",
     "q": "^1.4.1",
