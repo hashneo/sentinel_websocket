@@ -10,7 +10,7 @@ spec:
     protocol: TCP
     targetPort: 5000
   selector:
-    app: sentinel-websocket
+    app: websocket
     context: sentinel
     version: v1
 ---
@@ -18,23 +18,21 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sentinel-websocket
-  labels:
-    app: sentinel-websocket
-    context: sentinel
-    version: v1
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: sentinel-websocket
+      app: websocket
   template:
     metadata:
       labels:
-        app: sentinel-websocket
+        app: websocket
+        context: sentinel
+        version: v1
     spec:
       containers:
       -
-        name: sentinel-websocket
+        name: app
         image: docker.io/hashneo/sentinel-websocket-x86_64:latest
         imagePullPolicy: Always
         env:
