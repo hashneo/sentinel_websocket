@@ -96,7 +96,6 @@ definitions:
       message:
         type: string
 
-
   Status:
     type: object
     additionalProperties: false

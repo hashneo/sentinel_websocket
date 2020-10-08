@@ -1,28 +1,15 @@
 'use strict';
 require('array.prototype.find');
 
-function websocket(config) {
+function WebSocket(config) {
 
-    if ( !(this instanceof websocket) ){
-        return new websocket(config);
+    if ( !(this instanceof WebSocket) ){
+        return new WebSocket(config);
     }
 
-    const redis = require('redis');
+    const messageHandler = require('./messageHandler')();
 
     const uuid = require('uuid');
-
-    let sub = redis.createClient(
-        {
-            host: process.env.REDIS || global.config.redis || '127.0.0.1',
-            socket_keepalive: true,
-            retry_unfulfilled_commands: true
-        }
-    );
-
-    sub.on('end', function (e) {
-        console.log('Redis hung up, committing suicide');
-        process.exit(1);
-    });
 
     let wsClients = {};
 
@@ -42,39 +29,17 @@ function websocket(config) {
         });
     });
 
+    messageHandler.on('automation.log', (data) => {
+        if (wsClients[data.target])
+            wsClients[data.target].send( JSON.stringify( {log: data.log} ) );
+    });
 
-    sub.on('pmessage', function (channel, pattern, message) {
-
-        let data = JSON.parse(message);
-
-        switch (pattern) {
-            case 'sentinel.module.start':
-            case 'sentinel.module.running':
-                break;
-
-            case 'sentinel.device.insert':
-                break;
-            case 'sentinel.automation.log':
-
-                if (wsClients[data.target])
-                    wsClients[data.target].send( JSON.stringify( {log: data.log} ) );
-
-                break;
-            case 'sentinel.device.update':
-
-                // Accept only from server
-                if ( data.module === 'server'){
-                    for (let i in wsClients) {
-                        wsClients[i].send( JSON.stringify( {device: data.id, status: data.value} ) );
-                    }
-                }
-
-                break;
+    messageHandler.on('device.update', (data) => {
+        for (let i in wsClients) {
+            wsClients[i].send( JSON.stringify( {device: data.id, status: data.value} ) );
         }
     });
 
-    sub.psubscribe("sentinel.*");
-
 }
 
-module.exports = websocket;
+module.exports = WebSocket;
