@@ -10,8 +10,7 @@ info:
     email: 'steven.taylor@me.com'
   license:
     name: 'Steven Taylor'
-host: localhost
-basePath: /api
+basePath: /
 schemes:
 - https
 consumes:
