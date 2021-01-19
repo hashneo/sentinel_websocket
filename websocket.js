@@ -13,7 +13,7 @@ function WebSocket(config) {
 
     let wsClients = {};
 
-    global.app.ws('/api/ws', function (ws, req) {
+    global.app.ws('/', function (ws, req) {
 
         ws['id'] = ws.upgradeReq.cookies['connect.sid'] || uuid.v4();
         wsClients[ws.id] = ws;
