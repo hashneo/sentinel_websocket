@@ -10,6 +10,8 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const redis = require('redis');
 
+const logger = require('sentinel-common').logger;
+
 const uuid = require('uuid');
 
 const consul = require('consul')( {
@@ -71,12 +73,16 @@ consul.kv.get(`config/sentinel/${moduleName}`, function(err, result) {
             next();
         }
         else {
+            logger.info(`New inbound client request from ${req.headers['x-forwarded-for'] || req.connection.remoteAddress}`);
+
             // Only check WebSocket upgrade requests
-            securityHandlers.Oauth(req, null, ['user', 'admin'], (err) => {
+            securityHandlers.Oauth(req, null, ['user', 'admin', 'system'], (err) => {
                 if (!err) {
                     next();
                 }else {
-                    res.status(403).json({code: 403, message: err.message});
+                    logger.info(`Client rejected do to failing oauth checks: ${err.message}`);
+                    res.status(403).end();
+                    //res.close();
                 }
             });
         }
